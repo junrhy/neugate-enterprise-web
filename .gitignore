@@ -1,0 +1,47 @@
+# Dependencies & build outputs
+node_modules
+dist
+dist-ssr
+*.local
+
+# Rust / Tauri build outputs
+src-tauri/target
+src-tauri/gen
+
+# Database files
+*.db
+*.db-journal
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Tauri & Rust build outputs
+src-tauri/target/
+src-tauri/gen/schemas
+
+# Ignore mobile app icons
+src-tauri/icons/android/
+src-tauri/icons/ios/
+
+# Auto-generated build info
+# (Included for web builds)
+
+.env
+.env.production
