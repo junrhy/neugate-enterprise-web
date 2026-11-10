@@ -3,7 +3,7 @@ services:
     name: neugate-enterprise-web
     runtime: node
     plan: starter
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
@@ -14,4 +14,3 @@ services:
         sync: false
       - key: DB_SSL
         value: "true"
-
