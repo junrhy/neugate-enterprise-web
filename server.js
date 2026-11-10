@@ -77,9 +77,33 @@ if (databaseUrl) {
   // Test connection on startup
   pool
     .query("SELECT NOW()")
-    .then((res) => {
+    .then(async (res) => {
       console.log("✅ [NeuGate Database Connected]", res.rows[0]);
-      return pool.query("CREATE SCHEMA IF NOT EXISTS neugate;");
+      await pool.query("CREATE SCHEMA IF NOT EXISTS neugate;");
+
+      // Ensure all standard module permissions exist in neugate.permissions
+      const seedPerms = `
+        INSERT INTO neugate.permissions (id, module_name, action_name) VALUES
+          ('gate', 'gate', 'Access Gate Console'),
+          ('directory', 'directory', 'Manage Employee Directory'),
+          ('rates', 'rates', 'Compensation & Salary Rates'),
+          ('schedules', 'schedules', 'Work Schedules'),
+          ('holidays', 'holidays', 'Official Holidays Calendar'),
+          ('logs', 'logs', 'View Timekeeping Logs'),
+          ('leaves', 'leaves', 'Leave & Absence Workflow'),
+          ('overtime', 'overtime', 'Overtime Workflow'),
+          ('analytics', 'analytics', 'HR Analytics & Form 48'),
+          ('payroll', 'payroll', 'Payroll & Payslips'),
+          ('thirteenth', 'thirteenth', '13th Month & Annual Tax'),
+          ('disbursements', 'disbursements', 'Disbursements'),
+          ('payables', 'payables', 'Accounts Payables & Loans'),
+          ('reports', 'reports', 'Financial & Payroll Reports'),
+          ('sms', 'sms', 'SMS Broadcast Console'),
+          ('users', 'users', 'Manage Staff Users & Roles'),
+          ('settings', 'settings', 'System Settings')
+        ON CONFLICT (id) DO NOTHING;
+      `;
+      return pool.query(seedPerms).catch(() => {});
     })
     .catch((err) => {
       console.error("❌ [Database Connection Failed]", err.message);

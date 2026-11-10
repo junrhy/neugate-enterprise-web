@@ -123,10 +123,20 @@ export default function RoleManagement({ db }: RoleManagementProps) {
       const finalRoleId = isNaN(numericRoleId) ? roleId : numericRoleId;
 
       for (const pId of editingRole.permission_ids) {
-        await executeQuery(db, "INSERT INTO neugate.role_permissions (role_id, permission_id) VALUES ($1, $2)", [
-          finalRoleId,
-          pId,
-        ]);
+        // Ensure permission exists in neugate.permissions to satisfy foreign key constraint
+        const mod = DEFAULT_MODULES.find((m) => m.id === pId);
+        const actionLabel = mod ? mod.name : pId;
+        await executeQuery(
+          db,
+          "INSERT INTO neugate.permissions (id, module_name, action_name) VALUES ($1, $1, $2) ON CONFLICT (id) DO NOTHING",
+          [pId, actionLabel]
+        );
+
+        await executeQuery(
+          db,
+          "INSERT INTO neugate.role_permissions (role_id, permission_id) VALUES ($1, $2) ON CONFLICT (role_id, permission_id) DO NOTHING",
+          [finalRoleId, pId]
+        );
       }
 
       setIsFormOpen(false);
