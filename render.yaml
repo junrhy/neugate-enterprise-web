@@ -14,3 +14,4 @@ services:
         sync: false
       - key: DB_SSL
         value: "true"
+

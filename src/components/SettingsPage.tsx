@@ -69,9 +69,18 @@ const SETTINGS_TABS: { id: SettingsTab; icon: string; label: string; desc: strin
 
 export default function SettingsPage({ settings, onSave, db }: SettingsPageProps) {
   const { user } = useAuth();
-  const isAdmin = user && (user.username === "admin" || user.permissions?.includes("*"));
+  const isAdmin = Boolean(
+    user && (
+      user.username?.toLowerCase() === "admin" ||
+      String(user.role_id) === "1" ||
+      user.role_id === "admin" ||
+      user.permissions?.includes("*") ||
+      user.permissions?.includes("settings") ||
+      user.permissions?.some((p) => p.startsWith("settings"))
+    )
+  );
   const [form, setForm] = useState<AppSettings>({ ...settings });
-  const [activeTab, setActiveTab] = useState<SettingsTab>("license");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("branding");
   const [saved, setSaved] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -93,7 +102,7 @@ export default function SettingsPage({ settings, onSave, db }: SettingsPageProps
   } | null>(null);
 
   // License state for disabling tabs if not active & paid
-  const [isLicensedAndPaid, setIsLicensedAndPaid] = useState<boolean>(false);
+  const [isLicensedAndPaid, setIsLicensedAndPaid] = useState<boolean>(true);
   const [serverLicenseData, setServerLicenseData] = useState<{
     allow_db_settings?: boolean;
     allow_storage_settings?: boolean;
@@ -328,10 +337,10 @@ export default function SettingsPage({ settings, onSave, db }: SettingsPageProps
 
         <nav className="settings-nav">
           {SETTINGS_TABS.map((tab) => {
-            const isDbHidden = tab.id === "database" && !(serverLicenseData?.allow_db_settings ?? false);
-            const isStorageHidden = tab.id === "storage" && !(serverLicenseData?.allow_storage_settings ?? false);
-            const isDevHidden = tab.id === "developer" && !(serverLicenseData?.allow_developer_settings ?? false);
-            const isSmsHidden = tab.id === "sms" && !(serverLicenseData?.allow_sms_settings ?? false);
+            const isDbHidden = !isAdmin && tab.id === "database" && !(serverLicenseData?.allow_db_settings ?? true);
+            const isStorageHidden = !isAdmin && tab.id === "storage" && !(serverLicenseData?.allow_storage_settings ?? true);
+            const isDevHidden = !isAdmin && tab.id === "developer" && !(serverLicenseData?.allow_developer_settings ?? true);
+            const isSmsHidden = !isAdmin && tab.id === "sms" && !(serverLicenseData?.allow_sms_settings ?? true);
 
             if (isDbHidden || isStorageHidden || isDevHidden || isSmsHidden) {
               return null;
@@ -340,11 +349,13 @@ export default function SettingsPage({ settings, onSave, db }: SettingsPageProps
             const isLicenseLocked = !isLicensedAndPaid && tab.id !== "license";
             const isAdminLocked = tab.adminOnly && !isAdmin;
 
-            const isDisabled = isLicenseLocked || isAdminLocked;
+            const isDisabled = !isAdmin && (isLicenseLocked || isAdminLocked);
 
             let lockReason = "";
-            if (isLicenseLocked) lockReason = "Locked (Requires active paid license)";
-            else if (isAdminLocked) lockReason = "Administrator access required";
+            if (isDisabled) {
+              if (isAdminLocked) lockReason = "Administrator access required";
+              else if (isLicenseLocked) lockReason = "License required";
+            }
 
             return (
               <button
