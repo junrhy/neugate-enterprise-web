@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: neugate-enterprise-web
+    name: neuhr-web
     runtime: node
     plan: starter
     buildCommand: npm install --include=dev && npm run build
