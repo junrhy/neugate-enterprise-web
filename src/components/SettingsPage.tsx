@@ -242,7 +242,7 @@ export default function SettingsPage({ settings, onSave, db, branches }: Setting
           type: "IN",
           location: form.deviceLocation || "Main Turnstile",
           timestamp: new Date().toLocaleTimeString("en-PH"),
-          message: "Test Pusher Push Notification from NeuGate Enterprise Console"
+          message: "Test Pusher Push Notification from neuHR Console"
         });
 
         try {
@@ -268,7 +268,7 @@ export default function SettingsPage({ settings, onSave, db, branches }: Setting
         const res = await fetch(form.smsWebhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ to: "09000000000", message: "[NeuGate Test] Webhook connection test from the RFID app.", student: "Test Student", type: "TEST" }),
+          body: JSON.stringify({ to: "09000000000", message: "[neuHR Test] Webhook connection test from the RFID app.", student: "Test Student", type: "TEST" }),
         });
         setTestResult({ ok: res.ok, msg: res.ok ? `✅ Webhook responded with HTTP ${res.status}` : `❌ Server returned HTTP ${res.status}` });
 
@@ -277,7 +277,7 @@ export default function SettingsPage({ settings, onSave, db, branches }: Setting
         const params = new URLSearchParams();
         params.append("apikey", form.semaphoreApiKey.trim());
         params.append("number", "09000000000");
-        params.append("message", "[NeuGate Test] Connection test from the RFID app.");
+        params.append("message", "[neuHR Test] Connection test from the RFID app.");
         if (form.semaphoreSenderName.trim()) params.append("sendername", form.semaphoreSenderName.trim());
         const res = await fetch("https://api.semaphore.co/api/v4/messages", { method: "POST", body: params });
         const data = await res.json();
@@ -289,7 +289,7 @@ export default function SettingsPage({ settings, onSave, db, branches }: Setting
           await invoke("send_unisms_sms", {
             apiKey: form.unismsApiKey.trim(),
             recipient: "09170000000",
-            content: "NeuGate Notification: This is a test message to verify your connection.",
+            content: "neuHR Notification: This is a test message to verify your connection.",
             senderId: form.unismsSenderName.trim() || null,
           });
           setTestResult({
@@ -317,7 +317,7 @@ export default function SettingsPage({ settings, onSave, db, branches }: Setting
         const res = await fetch("https://app.philsms.com/api/v3/sms/send", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: form.philsmsToken.trim(), to: "09000000000", message: "[NeuGate Test] Connection test from the RFID app.", from: form.philsmsSenderName.trim() || undefined }),
+          body: JSON.stringify({ token: form.philsmsToken.trim(), to: "09000000000", message: "[neuHR Test] Connection test from the RFID app.", from: form.philsmsSenderName.trim() || undefined }),
         });
         setTestResult({ ok: res.ok, msg: res.ok ? "✅ Test SMS sent via PhilSMS!" : `❌ PhilSMS error: HTTP ${res.status}` });
 
@@ -327,7 +327,7 @@ export default function SettingsPage({ settings, onSave, db, branches }: Setting
         const res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ to: "09000000000", message: "[NeuGate Test] Connection test from the RFID app." }),
+          body: JSON.stringify({ to: "09000000000", message: "[neuHR Test] Connection test from the RFID app." }),
         });
         setTestResult({ ok: res.ok, msg: res.ok ? `✅ Mobile Gateway responded with HTTP ${res.status}` : `❌ Gateway returned HTTP ${res.status}` });
       }
@@ -1140,7 +1140,7 @@ export default function SettingsPage({ settings, onSave, db, branches }: Setting
                   </div>
                 </div>
                 <div style={{ padding: "0.85rem 1rem", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "var(--radius-sm)", fontSize: "0.78rem", color: "var(--success)", lineHeight: 1.6 }}>
-                  🚀 <strong>Direct Soketi Broadcaster Mode</strong> — Broadcasts real-time turnstile entry/exit events directly to Neulify Soketi (`enterprise.neulify.com`) for managers on the NeuGate Enterprise Portal page.
+                  🚀 <strong>Direct Soketi Broadcaster Mode</strong> — Broadcasts real-time turnstile entry/exit events directly to Neulify Soketi (`enterprise.neulify.com`) for managers on the neuHR Portal page.
                 </div>
               </>
             )}

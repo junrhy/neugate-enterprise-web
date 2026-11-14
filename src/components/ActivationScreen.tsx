@@ -106,7 +106,7 @@ export default function ActivationScreen({ onActivated }: ActivationScreenProps)
             </svg>
           </div>
 
-          <h2 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.5rem" }}>NeuGate Activation</h2>
+          <h2 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.5rem" }}>neuHR Activation</h2>
           <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: "1.5" }}>
             A valid license key is required to authorize and run this RFID entrance system workspace.
           </p>

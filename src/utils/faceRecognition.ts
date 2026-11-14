@@ -1,5 +1,5 @@
 /**
- * NeuGate Enterprise AI Facial Recognition Engine
+ * neuHR AI Facial Recognition Engine
  * Performs facial feature vector extraction, normalization, and similarity matching.
  */
 

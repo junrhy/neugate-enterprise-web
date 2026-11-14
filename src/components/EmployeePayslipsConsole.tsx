@@ -380,7 +380,7 @@ export default function EmployeePayslipsConsole({
               </div>
 
               <div style={{ textAlign: "center", fontSize: "0.7rem", color: "#9ca3af", borderTop: "1px dashed #e5e7eb", paddingTop: "0.5rem" }}>
-                Generated electronically by NeuGate Enterprise System. Valid without signature.
+                Generated electronically by neuHR System. Valid without signature.
               </div>
             </div>
           </div>

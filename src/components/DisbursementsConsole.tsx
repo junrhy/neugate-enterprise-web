@@ -776,7 +776,7 @@ export default function DisbursementsConsole({ db, employees }: DisbursementsCon
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "2px solid #000", paddingBottom: "1rem", marginBottom: "1rem" }}>
               <div>
                 <h1 style={{ fontSize: "1.5rem", fontWeight: 900, textTransform: "uppercase", margin: 0 }}>DISBURSEMENT VOUCHER</h1>
-                <p style={{ fontSize: "0.85rem", fontWeight: 700, color: "#374151", margin: "0.2rem 0 0 0" }}>NEUGATE ENTERPRISE &amp; SOLUTIONS</p>
+                <p style={{ fontSize: "0.85rem", fontWeight: 700, color: "#374151", margin: "0.2rem 0 0 0" }}>NEUHR ENTERPRISE &amp; SOLUTIONS</p>
               </div>
               <div style={{ textAlign: "right" }}>
                 <p style={{ fontSize: "1.1rem", fontFamily: "monospace", fontWeight: 800, margin: 0 }}>{selectedVoucher.disbursementNo}</p>

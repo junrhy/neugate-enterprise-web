@@ -1246,7 +1246,7 @@ export default function PayrollConsole({
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "2px solid #111827", paddingBottom: "1rem", marginBottom: "1rem" }}>
                 <div>
                   <h2 style={{ margin: 0, color: "#111827", textTransform: "uppercase", letterSpacing: "0.05em" }}>OFFICIAL PAYSLIP</h2>
-                  <div style={{ color: "#4b5563", fontSize: "0.85rem", fontWeight: 600 }}>NeuGate Enterprise Corporate Timekeeping</div>
+                  <div style={{ color: "#4b5563", fontSize: "0.85rem", fontWeight: 600 }}>neuHR Corporate Timekeeping &amp; Payroll</div>
                 </div>
                 <div style={{ textAlign: "right", fontSize: "0.85rem", color: "#4b5563" }}>
                   <div>Date Generated: <strong>{new Date(viewPayslip.createdAt).toLocaleDateString()}</strong></div>
@@ -1323,7 +1323,7 @@ export default function PayrollConsole({
               </div>
 
               <div style={{ textAlign: "center", fontSize: "0.7rem", color: "#9ca3af", borderTop: "1px dashed #e5e7eb", paddingTop: "0.5rem" }}>
-                Generated electronically by NeuGate Enterprise System. Valid without signature.
+                Generated electronically by neuHR System. Valid without signature.
               </div>
             </div>
           </div>
