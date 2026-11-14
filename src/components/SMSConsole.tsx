@@ -11,7 +11,7 @@ interface SMSConsoleProps {
   [key: string]: any;
 }
 
-export default function SmsConsole(props: SMSConsoleProps = {}) {
+export default function SmsConsole(_props: SMSConsoleProps = {}) {
   const [recipient, setRecipient] = useState("");
   const [message, setMessage] = useState("");
   const [logs, setLogs] = useState<{ id: string; recipient: string; message: string; gateway: string; status: string; timestamp: string }[]>([]);
@@ -150,8 +150,6 @@ export default function SmsConsole(props: SMSConsoleProps = {}) {
         creditInfo={creditInfo}
         loading={loadingCredits}
         onRefresh={fetchCredits}
-        onNavigateToSettings={props.onNavigateToSettings}
-        showSettingsButton={Boolean(props.onNavigateToSettings)}
       />
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "1.5rem" }}>

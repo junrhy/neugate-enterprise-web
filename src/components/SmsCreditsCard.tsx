@@ -5,8 +5,6 @@ export interface SmsCreditsCardProps {
   creditInfo?: SmsCreditInfo | null;
   loading?: boolean;
   onRefresh?: () => void;
-  onNavigateToSettings?: () => void;
-  showSettingsButton?: boolean;
   gateway?: string;
   style?: React.CSSProperties;
 }
@@ -15,8 +13,6 @@ export default function SmsCreditsCard({
   creditInfo: propCreditInfo,
   loading: propLoading,
   onRefresh,
-  onNavigateToSettings,
-  showSettingsButton = false,
   gateway: propGateway,
   style,
 }: SmsCreditsCardProps) {
@@ -131,7 +127,7 @@ export default function SmsCreditsCard({
           </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
           <button
             type="button"
             onClick={fetchCredits}
@@ -163,25 +159,6 @@ export default function SmsCreditsCard({
             </span>
             <span>{loading ? "Refreshing..." : "Refresh"}</span>
           </button>
-
-          {showSettingsButton && onNavigateToSettings && (
-            <button
-              type="button"
-              onClick={onNavigateToSettings}
-              style={{
-                background: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid var(--border, rgba(255, 255, 255, 0.12))",
-                color: "var(--text-main, #ffffff)",
-                fontSize: "0.75rem",
-                borderRadius: "6px",
-                padding: "0.25rem 0.65rem",
-                cursor: "pointer",
-                transition: "background 0.2s ease",
-              }}
-            >
-              ⚙️ Settings
-            </button>
-          )}
         </div>
       </div>
 
