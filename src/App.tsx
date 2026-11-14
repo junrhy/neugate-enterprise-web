@@ -20,6 +20,7 @@ import DisbursementsConsole from "./components/DisbursementsConsole";
 import AccountsPayablesConsole from "./components/AccountsPayablesConsole";
 import GeofencedClockInConsole from "./components/GeofencedClockInConsole";
 import HolidayManagement from "./components/HolidayManagement";
+import GeofenceGatekeeper from "./components/GeofenceGatekeeper";
 import { DEFAULT_BRANCH_LOCATIONS } from "./utils/geofence";
 import ActivationScreen from "./components/ActivationScreen";
 import UserLogin from "./components/auth/UserLogin";
@@ -135,7 +136,7 @@ function MainAppContent({
   onRefreshSchedules,
   onRefreshData,
 }: any) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     if (!user && activeTab !== "gate") {
@@ -176,7 +177,9 @@ function MainAppContent({
             customBackground={settings.gateBackground}
           />
         )}
-        {activeTab === "directory" && (
+        {activeTab !== "gate" && (
+          <GeofenceGatekeeper user={user} onLogout={logout} db={db}>
+            {activeTab === "directory" && (
           <EmployeeDirectory employees={employees} onAdd={handleAddEmployee} onUpdate={handleUpdateEmployee} onDelete={handleDeleteEmployee} />
         )}
         {activeTab === "schedules" && (
@@ -303,7 +306,9 @@ function MainAppContent({
           <SMSConsole smsLogs={smsLogs} onDelete={handleDeleteSmsLog} onClearAll={handleClearAllSmsLogs} />
         )}
         {activeTab === "settings" && (
-          <SettingsPage settings={settings} onSave={handleSaveSettings} db={db} />
+          <SettingsPage settings={settings} onSave={handleSaveSettings} db={db} branches={branches} />
+        )}
+          </GeofenceGatekeeper>
         )}
       </div>
     </div>

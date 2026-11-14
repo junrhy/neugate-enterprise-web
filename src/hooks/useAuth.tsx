@@ -67,6 +67,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           role_id: String(foundUser.role_id),
           is_active: foundUser.is_active === 1 || foundUser.is_active === true,
           permissions: foundUser.username === "admin" ? ["*"] : permissions,
+          geofence_enabled: Boolean(foundUser.geofence_enabled),
+          allowed_latitude: foundUser.allowed_latitude !== null && foundUser.allowed_latitude !== undefined ? Number(foundUser.allowed_latitude) : null,
+          allowed_longitude: foundUser.allowed_longitude !== null && foundUser.allowed_longitude !== undefined ? Number(foundUser.allowed_longitude) : null,
+          allowed_radius_meters: foundUser.allowed_radius_meters ? Number(foundUser.allowed_radius_meters) : 1000,
+          geofence_label: foundUser.geofence_label || "",
         };
 
         setUser(authUser);

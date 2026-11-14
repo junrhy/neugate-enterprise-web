@@ -82,6 +82,11 @@ export interface User {
   created_at?: string;
   updated_at?: string;
   permissions?: string[];
+  geofence_enabled?: boolean;
+  allowed_latitude?: number | null;
+  allowed_longitude?: number | null;
+  allowed_radius_meters?: number | null;
+  geofence_label?: string | null;
 }
 
 export interface Role {

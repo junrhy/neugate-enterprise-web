@@ -6,6 +6,8 @@ import UserManagement from "./admin/UserManagement";
 import RoleManagement from "./admin/RoleManagement";
 import { useAuth } from "../hooks/useAuth";
 
+import { BranchLocation } from "../types";
+
 export type ThemeColor = "ocean" | "emerald" | "rose" | "violet" | "amber";
 
 export interface AppSettings {
@@ -44,6 +46,7 @@ interface SettingsPageProps {
   settings: AppSettings;
   onSave: (settings: AppSettings) => void;
   db: Database | null;
+  branches?: BranchLocation[];
 }
 
 const THEMES: { id: ThemeColor; label: string; primary: string; description: string }[] = [
@@ -68,7 +71,7 @@ const SETTINGS_TABS: { id: SettingsTab; icon: string; label: string; desc: strin
   { id: "developer",  icon: "🛠️", label: "Dev Settings",     desc: "Automation & Webhook Integration", adminOnly: true },
 ];
 
-export default function SettingsPage({ settings, onSave, db }: SettingsPageProps) {
+export default function SettingsPage({ settings, onSave, db, branches }: SettingsPageProps) {
   const { user } = useAuth();
   const isAdmin = Boolean(
     user && (
@@ -1378,7 +1381,7 @@ ${form.broadcastDriver ? `  "driver":       "${form.broadcastDriver}",        //
         {/* ── TAB 4.5: USERS & ROLES ── */}
         {activeTab === "users" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-            <UserManagement db={db} />
+            <UserManagement db={db} branches={branches} />
             <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "0.5rem 0" }} />
             <RoleManagement db={db} />
           </div>
