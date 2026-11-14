@@ -151,7 +151,7 @@ export default function Header({
                     className={`dropdown-item ${activeTab === "geofence" ? "active" : ""}`}
                     onClick={() => setActiveTab("geofence")}
                   >
-                    📍 Worksite &amp; Geofence Policy
+                    📍 Worksites &amp; Geofencing
                   </button>
                 )}
               </div>

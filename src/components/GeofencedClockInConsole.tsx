@@ -254,10 +254,10 @@ export default function GeofencedClockInConsole({
       >
         <div>
           <h2 style={{ fontSize: "1.25rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--text-main)" }}>
-            📍 Worksite &amp; Geofence Policy Management
+            📍 Worksites &amp; Geofencing
           </h2>
           <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0.3rem 0 0 0" }}>
-            Configure authorized company yards, ports, and depots. Set allowed worksite policies so attendance at the Gate Terminal is verified.
+            Manage authorized worksite locations and gate geofence perimeters.
           </p>
         </div>
 
