@@ -57,7 +57,7 @@ function createGeofenceCenterIcon(radiusMeters: number, isLight: boolean = false
   const pillBg = isLight ? "#ffffff" : "#0f172a";
   const pillColor = isLight ? "#0284c7" : "#00d4ff";
   const pillBorder = isLight ? "1.5px solid #0284c7" : "1px solid #00d4ff";
-  const pillShadow = isLight ? "0 3px 10px rgba(0,0,0,0.15)" : "0 4px 12px rgba(0,0,0,0.6)";
+  const pillShadow = isLight ? "0 3px 10px rgba(0,0,0,0.18)" : "0 4px 12px rgba(0,0,0,0.6)";
 
   return L.divIcon({
     className: "custom-geofence-center-pin",
@@ -100,11 +100,11 @@ function createGeofenceCenterIcon(radiusMeters: number, isLight: boolean = false
           width: 46px;
           height: 46px;
           border-radius: 50%;
-          border: 2px solid #00d4ff;
-          background: rgba(0, 212, 255, 0.22);
+          border: 2px solid ${isLight ? "#0284c7" : "#00d4ff"};
+          background: ${isLight ? "rgba(2, 132, 199, 0.18)" : "rgba(0, 212, 255, 0.22)"};
           box-sizing: border-box;
           pointer-events: none;
-          box-shadow: 0 0 14px rgba(0, 212, 255, 0.6);
+          box-shadow: 0 0 14px ${isLight ? "rgba(2, 132, 199, 0.35)" : "rgba(0, 212, 255, 0.6)"};
         "></div>
 
         <div style="
@@ -115,18 +115,18 @@ function createGeofenceCenterIcon(radiusMeters: number, isLight: boolean = false
           width: 34px;
           height: 34px;
           border-radius: 50%;
-          background: #00d4ff;
+          background: ${isLight ? "#0284c7" : "#00d4ff"};
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+          box-shadow: 0 3px 12px rgba(0,0,0,0.3);
           border: 2px solid #ffffff;
           box-sizing: border-box;
           z-index: 2;
         ">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: auto;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${isLight ? "#ffffff" : "#0f172a"}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: auto;">
             <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-            <circle cx="12" cy="10" r="3" fill="#0f172a"></circle>
+            <circle cx="12" cy="10" r="3" fill="${isLight ? "#ffffff" : "#0f172a"}"></circle>
           </svg>
         </div>
       </div>
@@ -163,6 +163,7 @@ export default function GeofenceMapPickerModal({
       const isLight = document.body.classList.contains("light-mode");
       setTheme(isLight ? "light" : "dark");
     };
+    updateTheme();
     const observer = new MutationObserver(updateTheme);
     observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
@@ -233,7 +234,8 @@ export default function GeofenceMapPickerModal({
       maxZoom: 19,
     }).addTo(map);
 
-    const pinIcon = createGeofenceCenterIcon(radiusMeters, theme === "light");
+    const isLight = document.body.classList.contains("light-mode");
+    const pinIcon = createGeofenceCenterIcon(radiusMeters, isLight);
 
     const marker = L.marker([selectedLat, selectedLng], {
       icon: pinIcon,
@@ -243,9 +245,9 @@ export default function GeofenceMapPickerModal({
 
     const circle = L.circle([selectedLat, selectedLng], {
       radius: radiusMeters,
-      color: "#00d4ff",
-      fillColor: "#00d4ff",
-      fillOpacity: 0.18,
+      color: isLight ? "#0284c7" : "#00d4ff",
+      fillColor: isLight ? "#0284c7" : "#00d4ff",
+      fillOpacity: isLight ? 0.14 : 0.18,
       weight: 2,
       dashArray: "4, 6",
     }).addTo(map);
@@ -289,8 +291,14 @@ export default function GeofenceMapPickerModal({
   // Sync radius & theme updates
   useEffect(() => {
     if (circleRef.current && markerRef.current) {
+      const isLight = theme === "light";
       circleRef.current.setRadius(radiusMeters);
-      markerRef.current.setIcon(createGeofenceCenterIcon(radiusMeters, theme === "light"));
+      circleRef.current.setStyle({
+        color: isLight ? "#0284c7" : "#00d4ff",
+        fillColor: isLight ? "#0284c7" : "#00d4ff",
+        fillOpacity: isLight ? 0.14 : 0.18,
+      });
+      markerRef.current.setIcon(createGeofenceCenterIcon(radiusMeters, isLight));
       if (mapInstanceRef.current) {
         mapInstanceRef.current.fitBounds(circleRef.current.getBounds(), {
           padding: [50, 50],
@@ -372,7 +380,7 @@ export default function GeofenceMapPickerModal({
         left: 0,
         width: "100%",
         height: "100%",
-        background: "rgba(0,0,0,0.78)",
+        background: theme === "light" ? "rgba(15, 23, 42, 0.45)" : "rgba(0, 0, 0, 0.78)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -386,12 +394,13 @@ export default function GeofenceMapPickerModal({
         style={{
           width: "100%",
           maxWidth: "880px",
-          background: "var(--bg-main, #0f172a)",
+          background: "var(--bg-card)",
+          color: "var(--text)",
           border: "1px solid var(--border)",
           borderRadius: "16px",
           display: "flex",
           flexDirection: "column",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)",
+          boxShadow: theme === "light" ? "0 20px 40px rgba(0, 0, 0, 0.15)" : "0 25px 50px -12px rgba(0, 0, 0, 0.7)",
           overflow: "hidden",
         }}
         onClick={(e) => e.stopPropagation()}
@@ -407,6 +416,7 @@ export default function GeofenceMapPickerModal({
         <div
           style={{
             padding: "1.1rem 1.5rem",
+            background: "var(--bg-card)",
             borderBottom: "1px solid var(--border)",
             display: "flex",
             justifyContent: "space-between",
@@ -414,10 +424,10 @@ export default function GeofenceMapPickerModal({
           }}
         >
           <div>
-            <h3 style={{ margin: "0 0 0.2rem 0", fontSize: "1.1rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <h3 style={{ margin: "0 0 0.2rem 0", fontSize: "1.1rem", color: "var(--text)", display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700 }}>
               <span>🗺️</span> Pick Geofence Worksite on Map
             </h3>
-            <p style={{ margin: 0, fontSize: "0.78rem", color: "var(--text-dim)" }}>
+            <p style={{ margin: 0, fontSize: "0.78rem", color: "var(--text-muted)" }}>
               Click anywhere on the map or drag the pin to designate the user's authorized work perimeter.
             </p>
           </div>
@@ -435,7 +445,7 @@ export default function GeofenceMapPickerModal({
         <div
           style={{
             padding: "0.75rem 1.5rem",
-            background: "rgba(255,255,255,0.02)",
+            background: "var(--bg-surface)",
             borderBottom: "1px solid var(--border)",
             display: "flex",
             gap: "0.75rem",
@@ -466,12 +476,12 @@ export default function GeofenceMapPickerModal({
                   top: "100%",
                   left: 0,
                   width: "100%",
-                  background: "var(--bg-card, #1e293b)",
+                  background: "var(--bg-card)",
                   border: "1px solid var(--border)",
                   borderRadius: "8px",
                   marginTop: "4px",
                   zIndex: 1000,
-                  boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+                  boxShadow: "var(--shadow)",
                   maxHeight: "220px",
                   overflowY: "auto",
                 }}
@@ -481,15 +491,15 @@ export default function GeofenceMapPickerModal({
                     key={idx}
                     onClick={() => handleSelectSearchLocation(item)}
                     style={{
-                      padding: "0.5rem 0.8rem",
+                      padding: "0.55rem 0.85rem",
                       fontSize: "0.8rem",
                       cursor: "pointer",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderBottom: "1px solid var(--border)",
                       display: "flex",
                       justifyContent: "space-between",
-                      color: "var(--text-main)",
+                      color: "var(--text)",
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0, 212, 255, 0.12)")}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--primary-dim)")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "75%" }}>
@@ -535,13 +545,14 @@ export default function GeofenceMapPickerModal({
               bottom: "12px",
               left: "12px",
               zIndex: 1000,
-              background: "rgba(15, 23, 42, 0.9)",
-              border: "1px solid rgba(255, 255, 255, 0.15)",
+              background: theme === "light" ? "rgba(255, 255, 255, 0.95)" : "rgba(15, 23, 42, 0.9)",
+              border: theme === "light" ? "1px solid #cbd5e1" : "1px solid rgba(255, 255, 255, 0.15)",
               borderRadius: "8px",
               padding: "0.4rem 0.75rem",
               fontSize: "0.75rem",
-              color: "#f1f5f9",
-              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.5)",
+              fontWeight: 600,
+              color: theme === "light" ? "#1e293b" : "#f1f5f9",
+              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
               backdropFilter: "blur(6px)",
               pointerEvents: "none",
             }}
@@ -554,7 +565,7 @@ export default function GeofenceMapPickerModal({
         <div
           style={{
             padding: "1.1rem 1.5rem",
-            background: "rgba(255,255,255,0.02)",
+            background: "var(--bg-surface)",
             borderTop: "1px solid var(--border)",
             display: "flex",
             flexDirection: "column",
@@ -563,7 +574,7 @@ export default function GeofenceMapPickerModal({
         >
           <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: "0.85rem", alignItems: "center" }}>
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: "0.75rem" }}>Facility / Geofence Name</label>
+              <label className="form-label" style={{ fontSize: "0.75rem", color: "var(--text)" }}>Facility / Geofence Name</label>
               <input
                 type="text"
                 className="form-input"
@@ -575,7 +586,7 @@ export default function GeofenceMapPickerModal({
             </div>
 
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: "0.75rem" }}>Latitude</label>
+              <label className="form-label" style={{ fontSize: "0.75rem", color: "var(--text)" }}>Latitude</label>
               <input
                 type="number"
                 step="0.000001"
@@ -594,7 +605,7 @@ export default function GeofenceMapPickerModal({
             </div>
 
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: "0.75rem" }}>Longitude</label>
+              <label className="form-label" style={{ fontSize: "0.75rem", color: "var(--text)" }}>Longitude</label>
               <input
                 type="number"
                 step="0.000001"
@@ -615,7 +626,7 @@ export default function GeofenceMapPickerModal({
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.85rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "0.78rem", color: "var(--text-dim)", fontWeight: 600 }}>Radius:</span>
+              <span style={{ fontSize: "0.78rem", color: "var(--text)", fontWeight: 600 }}>Radius:</span>
               <div style={{ display: "flex", gap: "0.3rem" }}>
                 {[100, 250, 500, 1000, 2000, 5000].map((radius) => (
                   <button
@@ -638,7 +649,7 @@ export default function GeofenceMapPickerModal({
                 value={radiusMeters}
                 onChange={(e) => setRadiusMeters(parseInt(e.target.value, 10) || 500)}
               />
-              <span style={{ fontSize: "0.72rem", color: "var(--text-dim)" }}>meters</span>
+              <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>meters</span>
             </div>
 
             <div style={{ display: "flex", gap: "0.6rem" }}>

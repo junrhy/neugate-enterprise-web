@@ -31,8 +31,10 @@
   --border-input-hover: rgba(255, 255, 255, 0.28);
   --border-focus: rgba(0, 212, 255, 0.4);
   --text: #e8eaf6;
+  --text-main: #e8eaf6;
   --text-muted: #6b7bb8;
   --text-dim: #3d4d7a;
+  --bg-main: #0a0e1a;
   --gate-overlay: rgba(10, 14, 26, 0.82);
 }
 
@@ -49,8 +51,10 @@ body.light-mode {
   --border-input-hover: #475569;
   --border-focus: rgba(0, 212, 255, 0.6);
   --text: #1f2937;
+  --text-main: #1f2937;
   --text-muted: #4b5563;
   --text-dim: #9ca3af;
+  --bg-main: #f3f4f6;
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   --shadow-glow: 0 0 20px rgba(0, 212, 255, 0.1);
   --gate-overlay: rgba(255, 255, 255, 0.88);

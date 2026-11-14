@@ -95,8 +95,8 @@ export default function UnauthorizedGeofenceScreen({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "var(--bg-main, #0f172a)",
-        color: "var(--text-main, #f8fafc)",
+        background: "var(--bg)",
+        color: "var(--text)",
         padding: "1.5rem",
         fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       }}
@@ -105,11 +105,11 @@ export default function UnauthorizedGeofenceScreen({
         style={{
           width: "100%",
           maxWidth: "560px",
-          background: "var(--bg-card, rgba(30, 41, 59, 0.75))",
+          background: "var(--bg-card)",
           border: "1px solid var(--border)",
           borderRadius: "16px",
           padding: "2rem",
-          boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
+          boxShadow: "var(--shadow)",
           display: "flex",
           flexDirection: "column",
           gap: "1.25rem",
@@ -286,7 +286,8 @@ export default function UnauthorizedGeofenceScreen({
             style={{
               width: "100%",
               maxWidth: "400px",
-              background: "var(--bg-card, #1e293b)",
+              background: "var(--bg-card)",
+              color: "var(--text)",
               border: "1px solid var(--border)",
               borderRadius: "14px",
               padding: "1.75rem",
@@ -374,3 +375,4 @@ export default function UnauthorizedGeofenceScreen({
     </div>
   );
 }
+

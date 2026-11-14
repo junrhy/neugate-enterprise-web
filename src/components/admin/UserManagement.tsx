@@ -247,8 +247,8 @@ export default function UserManagement({ db, branches }: UserManagementProps) {
       )}
 
       {isFormOpen && (
-        <div style={{ padding: "1.5rem", background: "var(--bg-main)", border: "1px solid var(--border)", borderRadius: "12px" }}>
-          <h4 style={{ margin: "0 0 1.25rem 0", color: "var(--text-main)" }}>
+        <div style={{ padding: "1.5rem", background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "12px", boxShadow: "var(--shadow)" }}>
+          <h4 style={{ margin: "0 0 1.25rem 0", color: "var(--text)" }}>
             {editingUser?.id ? "✏️ Edit Staff User" : "✨ Register New Staff Account"}
           </h4>
           <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
@@ -310,7 +310,7 @@ export default function UserManagement({ db, branches }: UserManagementProps) {
             {/* Geolocation Access Restriction Section */}
             <div
               style={{
-                background: "rgba(255,255,255,0.02)",
+                background: "var(--bg-surface)",
                 border: "1px solid var(--border)",
                 borderRadius: "10px",
                 padding: "1.1rem",
@@ -319,10 +319,10 @@ export default function UserManagement({ db, branches }: UserManagementProps) {
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <div style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                     <span>📍</span> Geolocation Access Restriction
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.15rem" }}>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.15rem" }}>
                     Restrict this user so they can only access the enterprise app while physically present at an authorized branch or terminal.
                   </div>
                 </div>
