@@ -1,14 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { checkActiveGatewayCredits, SmsCreditInfo } from "../utils/smsCredits";
 
 interface SMSConsoleProps {
+  onNavigateToSettings?: () => void;
+  smsLogs?: any[];
+  onDelete?: (id: any) => void;
+  onClearAll?: () => void;
   [key: string]: any;
 }
 
-export default function SmsConsole(_props: SMSConsoleProps = {}) {
+export default function SmsConsole(props: SMSConsoleProps = {}) {
   const [recipient, setRecipient] = useState("");
   const [message, setMessage] = useState("");
-  const [channel, setChannel] = useState<"sms" | "telegram" | "whatsapp" | "signal" | "viber">( () => {
-    const gateway = localStorage.getItem("neugate_sms_gateway") || "pusher";
+  const [channel, setChannel] = useState<"sms" | "telegram" | "whatsapp" | "signal" | "viber">(() => {
+    const gateway = localStorage.getItem("neugate_sms_gateway") || "semaphore";
     if (gateway === "telegram") return "telegram";
     if (gateway === "whatsapp") return "whatsapp";
     if (gateway === "signal") return "signal";
@@ -17,6 +23,24 @@ export default function SmsConsole(_props: SMSConsoleProps = {}) {
   });
   const [logs, setLogs] = useState<{ id: string; recipient: string; message: string; channel: string; status: string; timestamp: string }[]>([]);
   const [sending, setSending] = useState(false);
+  const [creditInfo, setCreditInfo] = useState<SmsCreditInfo | null>(null);
+  const [loadingCredits, setLoadingCredits] = useState(false);
+
+  const fetchCredits = async () => {
+    setLoadingCredits(true);
+    try {
+      const info = await checkActiveGatewayCredits();
+      setCreditInfo(info);
+    } catch (err: any) {
+      console.error("[SMS Credits Error]:", err);
+    } finally {
+      setLoadingCredits(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCredits();
+  }, []);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +49,78 @@ export default function SmsConsole(_props: SMSConsoleProps = {}) {
     setSending(true);
 
     try {
-      if (channel === "telegram") {
+      if (channel === "sms") {
+        const gateway = localStorage.getItem("neugate_sms_gateway") || "webhook";
+        if (gateway === "semaphore") {
+          const apiKey = localStorage.getItem("neugate_semaphore_api_key") || "";
+          const sender = localStorage.getItem("neugate_semaphore_sender_name") || "";
+          if (!apiKey) throw new Error("Semaphore API key is missing. Configure it in SMS Settings.");
+          const params = new URLSearchParams();
+          params.append("apikey", apiKey.trim());
+          params.append("number", recipient.trim());
+          params.append("message", message.trim());
+          if (sender.trim()) params.append("sendername", sender.trim());
+          const res = await fetch("https://api.semaphore.co/api/v4/messages", { method: "POST", body: params });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(`Semaphore error: ${data.message || res.statusText}`);
+          }
+        } else if (gateway === "unisms") {
+          const apiKey = localStorage.getItem("neugate_unisms_api_key") || "";
+          const sender = localStorage.getItem("neugate_unisms_sender_name") || "";
+          if (!apiKey) throw new Error("UniSMS API key is missing. Configure it in SMS Settings.");
+          try {
+            await invoke("send_unisms_sms", {
+              apiKey: apiKey.trim(),
+              recipient: recipient.trim(),
+              content: message.trim(),
+              senderId: sender.trim() || null,
+            });
+          } catch {
+            const res = await fetch("https://unismsapi.com/api/send", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                api_key: apiKey.trim(),
+                recipient: recipient.trim(),
+                message: message.trim(),
+                sender_id: sender.trim() || undefined,
+              }),
+            });
+            if (!res.ok) throw new Error(`UniSMS dispatch error: ${res.statusText}`);
+          }
+        } else if (gateway === "philsms") {
+          const token = localStorage.getItem("neugate_philsms_token") || "";
+          const sender = localStorage.getItem("neugate_philsms_sender_name") || "";
+          if (!token) throw new Error("PhilSMS Token is missing. Configure it in SMS Settings.");
+          const res = await fetch("https://app.philsms.com/api/v3/sms/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              token: token.trim(),
+              to: recipient.trim(),
+              message: message.trim(),
+              from: sender.trim() || undefined,
+            }),
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(`PhilSMS error: ${data.message || res.statusText}`);
+          }
+        } else if (gateway === "webhook") {
+          const webhookUrl = localStorage.getItem("neugate_sms_webhook") || "";
+          if (webhookUrl) {
+            await fetch(webhookUrl.trim(), {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ to: recipient.trim(), message: message.trim(), type: "MANUAL" }),
+            });
+          }
+        }
+
+        // Auto-refresh credits
+        setTimeout(() => fetchCredits(), 1200);
+      } else if (channel === "telegram") {
         const botToken = localStorage.getItem("neugate_telegram_bot_token") || "";
         const defaultChat = localStorage.getItem("neugate_telegram_chat_id") || "";
         const target = recipient.trim() || defaultChat.trim();
@@ -109,8 +204,9 @@ export default function SmsConsole(_props: SMSConsoleProps = {}) {
       setLogs((prev) => [newLog, ...prev]);
       setRecipient("");
       setMessage("");
-    } catch (err) {
+    } catch (err: any) {
       console.error("[Messaging Console Error]:", err);
+      alert(err.message || "Failed to dispatch message");
     } finally {
       setSending(false);
     }
@@ -125,6 +221,114 @@ export default function SmsConsole(_props: SMSConsoleProps = {}) {
         <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--text-dim)" }}>
           Send instant notifications via SMS Gateway, Telegram Bot, WhatsApp, Signal, or Viber.
         </p>
+      </div>
+
+      {/* 💳 SMS Gateway & Live Credit Status Card */}
+      <div
+        style={{
+          background: "var(--bg-card, rgba(255, 255, 255, 0.03))",
+          border: "1px solid var(--border)",
+          borderRadius: "12px",
+          padding: "1rem 1.25rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "1rem",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div
+            style={{
+              width: "46px",
+              height: "46px",
+              borderRadius: "10px",
+              background: "var(--primary-dim, rgba(0, 212, 255, 0.1))",
+              border: "1px solid rgba(0, 212, 255, 0.25)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1.45rem",
+              flexShrink: 0,
+            }}
+          >
+            💳
+          </div>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ fontSize: "0.75rem", textTransform: "uppercase", fontWeight: 700, color: "var(--text-dim)" }}>
+                Active SMS Gateway
+              </span>
+              <span className="badge badge-primary" style={{ textTransform: "uppercase", fontSize: "0.72rem", letterSpacing: "0.5px" }}>
+                {creditInfo?.gateway || localStorage.getItem("neugate_sms_gateway") || "Not Configured"}
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", marginTop: "0.25rem", flexWrap: "wrap" }}>
+              {loadingCredits ? (
+                <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-muted)" }}>
+                  ⏳ Checking remaining credits...
+                </span>
+              ) : creditInfo?.error ? (
+                <span style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--danger)" }}>
+                  ⚠️ {creditInfo.error}
+                </span>
+              ) : creditInfo?.credits !== undefined && creditInfo?.credits !== null ? (
+                <>
+                  <span
+                    style={{
+                      fontSize: "1.35rem",
+                      fontWeight: 800,
+                      color:
+                        typeof creditInfo.credits === "number" && creditInfo.credits <= 20
+                          ? "var(--danger)"
+                          : "var(--primary)",
+                    }}
+                  >
+                    {typeof creditInfo.credits === "number"
+                      ? `${creditInfo.credits.toLocaleString()} SMS Credits Left`
+                      : creditInfo.credits}
+                  </span>
+                  {creditInfo.accountName && (
+                    <span style={{ fontSize: "0.82rem", color: "var(--text-dim)", fontWeight: 600 }}>
+                      • {creditInfo.accountName}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span style={{ fontSize: "0.95rem", color: "var(--text-muted)" }}>
+                  Click refresh to check remaining credits
+                </span>
+              )}
+            </div>
+            {creditInfo?.checkedAt && (
+              <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginTop: "0.2rem" }}>
+                Last checked at {creditInfo.checkedAt}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={fetchCredits}
+            disabled={loadingCredits}
+            style={{ fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.35rem", padding: "0.5rem 0.85rem" }}
+          >
+            {loadingCredits ? "⏳ Refreshing..." : "🔄 Refresh Balance"}
+          </button>
+          {props.onNavigateToSettings && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={props.onNavigateToSettings}
+              style={{ fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.35rem", padding: "0.5rem 0.85rem" }}
+            >
+              ⚙️ SMS Settings
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "1.5rem" }}>

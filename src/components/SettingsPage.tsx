@@ -7,6 +7,7 @@ import RoleManagement from "./admin/RoleManagement";
 import { useAuth } from "../hooks/useAuth";
 
 import { BranchLocation } from "../types";
+import { checkSemaphoreCredits, checkUniSmsCredits, checkPhilSmsCredits, SmsCreditInfo } from "../utils/smsCredits";
 
 export type ThemeColor = "ocean" | "emerald" | "rose" | "violet" | "amber";
 
@@ -88,8 +89,14 @@ export default function SettingsPage({ settings, onSave, db, branches }: Setting
   const [saved, setSaved] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [checkingSemaphoreCredits, setCheckingSemaphoreCredits] = useState(false);
+  const [semaphoreCreditsInfo, setSemaphoreCreditsInfo] = useState<SmsCreditInfo | null>(null);
+
+  const [checkingPhilSmsCredits, setCheckingPhilSmsCredits] = useState(false);
+  const [philsmsCreditsInfo, setPhilsmsCreditsInfo] = useState<SmsCreditInfo | null>(null);
+
   const [checkingUniSMSCredits, setCheckingUniSMSCredits] = useState(false);
-  const [unismsCredits, setUnismsCredits] = useState<number | string | null>(null);
+  const [unismsCreditsInfo, setUnismsCreditsInfo] = useState<SmsCreditInfo | null>(null);
 
   // Signatories State
   const [sigPreparedBy, setSigPreparedBy] = useState(() => localStorage.getItem("neugate_sig_prepared_by") || "JANE D. DOE");
@@ -1200,12 +1207,64 @@ ${form.broadcastDriver ? `  "driver":       "${form.broadcastDriver}",        //
                       onChange={(e) => { setForm((f) => ({ ...f, semaphoreSenderName: e.target.value })); setTestResult(null); }}
                       spellCheck={false} />
                   </div>
-                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
                     <button className="btn btn-outline" onClick={handleTestWebhook} disabled={testing || !form.semaphoreApiKey.trim()} style={{ fontSize: "0.8rem" }}>
                       {testing ? "⏳ Testing..." : "🔌 Test Semaphore connection"}
                     </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      disabled={checkingSemaphoreCredits || !form.semaphoreApiKey.trim()}
+                      style={{ fontSize: "0.8rem" }}
+                      onClick={async () => {
+                        setCheckingSemaphoreCredits(true);
+                        setSemaphoreCreditsInfo(null);
+                        try {
+                          const info = await checkSemaphoreCredits(form.semaphoreApiKey.trim());
+                          setSemaphoreCreditsInfo(info);
+                        } finally {
+                          setCheckingSemaphoreCredits(false);
+                        }
+                      }}
+                    >
+                      {checkingSemaphoreCredits ? "⏳ Fetching..." : "💳 Check Semaphore Credits"}
+                    </button>
                     {testResult && <span style={{ fontSize: "0.78rem", fontWeight: 600, color: testResult.ok ? "var(--success)" : "var(--danger)" }}>{testResult.msg}</span>}
                   </div>
+
+                  {semaphoreCreditsInfo && (
+                    <div style={{
+                      marginTop: "0.75rem",
+                      padding: "0.75rem 1rem",
+                      background: semaphoreCreditsInfo.error ? "rgba(239, 68, 68, 0.08)" : "var(--primary-dim)",
+                      border: semaphoreCreditsInfo.error ? "1px solid rgba(239, 68, 68, 0.25)" : "1px solid rgba(0, 212, 255, 0.25)",
+                      borderRadius: "var(--radius-sm)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.75rem"
+                    }}>
+                      <span style={{ fontSize: "1.3rem" }}>{semaphoreCreditsInfo.error ? "⚠️" : "💰"}</span>
+                      <div>
+                        <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", textTransform: "uppercase", fontWeight: 700 }}>
+                          Semaphore Account Balance {semaphoreCreditsInfo.accountName ? `• ${semaphoreCreditsInfo.accountName}` : ""}
+                        </div>
+                        {semaphoreCreditsInfo.error ? (
+                          <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--danger)" }}>
+                            {semaphoreCreditsInfo.error}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: "1.05rem", fontWeight: 800, color: (typeof semaphoreCreditsInfo.credits === "number" && semaphoreCreditsInfo.credits <= 20) ? "var(--danger)" : "var(--primary)" }}>
+                            {typeof semaphoreCreditsInfo.credits === "number" ? `${semaphoreCreditsInfo.credits.toLocaleString()} SMS Credits Available` : semaphoreCreditsInfo.credits}
+                          </div>
+                        )}
+                        {semaphoreCreditsInfo.checkedAt && (
+                          <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "0.15rem" }}>
+                            Last queried at {semaphoreCreditsInfo.checkedAt}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div style={{ padding: "0.85rem 1rem", background: "var(--primary-dim)", border: "1px solid rgba(0, 212, 255, 0.25)", borderRadius: "var(--radius-sm)", fontSize: "0.78rem", color: "var(--primary)", lineHeight: 1.6 }}>
                   ℹ️ <strong>Semaphore Direct Connection</strong> — Queries Semaphore's public API directly. Ensure your account has sufficient credits.
@@ -1238,23 +1297,16 @@ ${form.broadcastDriver ? `  "driver":       "${form.broadcastDriver}",        //
                       {testing ? "⏳ Testing..." : "🔌 Test UniSMS connection"}
                     </button>
                     <button
+                      type="button"
                       className="btn btn-outline"
                       disabled={checkingUniSMSCredits || !form.unismsApiKey.trim()}
                       style={{ fontSize: "0.8rem" }}
                       onClick={async () => {
                         setCheckingUniSMSCredits(true);
-                        setUnismsCredits(null);
+                        setUnismsCreditsInfo(null);
                         try {
-                          const resStr = await invoke<string>("get_unisms_account_info", { apiKey: form.unismsApiKey.trim() });
-                          const data = JSON.parse(resStr);
-                          if (data && (data.sms_credits !== undefined || data.credits !== undefined)) {
-                            const credits = data.sms_credits ?? data.credits;
-                            setUnismsCredits(credits);
-                          } else {
-                            setUnismsCredits(resStr);
-                          }
-                        } catch (err: any) {
-                          setUnismsCredits(`Error: ${typeof err === "string" ? err : err.message || JSON.stringify(err)}`);
+                          const info = await checkUniSmsCredits(form.unismsApiKey.trim());
+                          setUnismsCreditsInfo(info);
                         } finally {
                           setCheckingUniSMSCredits(false);
                         }
@@ -1265,25 +1317,36 @@ ${form.broadcastDriver ? `  "driver":       "${form.broadcastDriver}",        //
                     {testResult && <span style={{ fontSize: "0.78rem", fontWeight: 600, color: testResult.ok ? "var(--success)" : "var(--danger)" }}>{testResult.msg}</span>}
                   </div>
 
-                  {unismsCredits !== null && (
+                  {unismsCreditsInfo && (
                     <div style={{
                       marginTop: "0.75rem",
                       padding: "0.75rem 1rem",
-                      background: "rgba(0, 212, 255, 0.08)",
-                      border: "1px solid rgba(0, 212, 255, 0.25)",
+                      background: unismsCreditsInfo.error ? "rgba(239, 68, 68, 0.08)" : "var(--primary-dim)",
+                      border: unismsCreditsInfo.error ? "1px solid rgba(239, 68, 68, 0.25)" : "1px solid rgba(0, 212, 255, 0.25)",
                       borderRadius: "var(--radius-sm)",
                       display: "flex",
                       alignItems: "center",
                       gap: "0.75rem"
                     }}>
-                      <span style={{ fontSize: "1.2rem" }}>💰</span>
+                      <span style={{ fontSize: "1.3rem" }}>{unismsCreditsInfo.error ? "⚠️" : "💰"}</span>
                       <div>
                         <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", textTransform: "uppercase", fontWeight: 700 }}>
-                          UniSMS Account Balance
+                          UniSMS Account Balance {unismsCreditsInfo.accountName ? `• ${unismsCreditsInfo.accountName}` : ""}
                         </div>
-                        <div style={{ fontSize: "1rem", fontWeight: 800, color: "var(--primary)" }}>
-                          {typeof unismsCredits === "number" ? `${unismsCredits} SMS Credits` : unismsCredits}
-                        </div>
+                        {unismsCreditsInfo.error ? (
+                          <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--danger)" }}>
+                            {unismsCreditsInfo.error}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: "1.05rem", fontWeight: 800, color: (typeof unismsCreditsInfo.credits === "number" && unismsCreditsInfo.credits <= 20) ? "var(--danger)" : "var(--primary)" }}>
+                            {typeof unismsCreditsInfo.credits === "number" ? `${unismsCreditsInfo.credits.toLocaleString()} SMS Credits Available` : unismsCreditsInfo.credits}
+                          </div>
+                        )}
+                        {unismsCreditsInfo.checkedAt && (
+                          <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "0.15rem" }}>
+                            Last queried at {unismsCreditsInfo.checkedAt}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1310,12 +1373,64 @@ ${form.broadcastDriver ? `  "driver":       "${form.broadcastDriver}",        //
                       onChange={(e) => { setForm((f) => ({ ...f, philsmsSenderName: e.target.value })); setTestResult(null); }}
                       spellCheck={false} />
                   </div>
-                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
                     <button className="btn btn-outline" onClick={handleTestWebhook} disabled={testing || !form.philsmsToken.trim()} style={{ fontSize: "0.8rem" }}>
                       {testing ? "⏳ Testing..." : "🔌 Test PhilSMS connection"}
                     </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      disabled={checkingPhilSmsCredits || !form.philsmsToken.trim()}
+                      style={{ fontSize: "0.8rem" }}
+                      onClick={async () => {
+                        setCheckingPhilSmsCredits(true);
+                        setPhilsmsCreditsInfo(null);
+                        try {
+                          const info = await checkPhilSmsCredits(form.philsmsToken.trim());
+                          setPhilsmsCreditsInfo(info);
+                        } finally {
+                          setCheckingPhilSmsCredits(false);
+                        }
+                      }}
+                    >
+                      {checkingPhilSmsCredits ? "⏳ Fetching..." : "💳 Check PhilSMS Balance"}
+                    </button>
                     {testResult && <span style={{ fontSize: "0.78rem", fontWeight: 600, color: testResult.ok ? "var(--success)" : "var(--danger)" }}>{testResult.msg}</span>}
                   </div>
+
+                  {philsmsCreditsInfo && (
+                    <div style={{
+                      marginTop: "0.75rem",
+                      padding: "0.75rem 1rem",
+                      background: philsmsCreditsInfo.error ? "rgba(239, 68, 68, 0.08)" : "var(--primary-dim)",
+                      border: philsmsCreditsInfo.error ? "1px solid rgba(239, 68, 68, 0.25)" : "1px solid rgba(0, 212, 255, 0.25)",
+                      borderRadius: "var(--radius-sm)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.75rem"
+                    }}>
+                      <span style={{ fontSize: "1.3rem" }}>{philsmsCreditsInfo.error ? "⚠️" : "💰"}</span>
+                      <div>
+                        <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", textTransform: "uppercase", fontWeight: 700 }}>
+                          PhilSMS Account Balance {philsmsCreditsInfo.accountName ? `• ${philsmsCreditsInfo.accountName}` : ""}
+                        </div>
+                        {philsmsCreditsInfo.error ? (
+                          <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--danger)" }}>
+                            {philsmsCreditsInfo.error}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: "1.05rem", fontWeight: 800, color: (typeof philsmsCreditsInfo.credits === "number" && philsmsCreditsInfo.credits <= 20) ? "var(--danger)" : "var(--primary)" }}>
+                            {typeof philsmsCreditsInfo.credits === "number" ? `${philsmsCreditsInfo.credits.toLocaleString()} SMS Credits Available` : philsmsCreditsInfo.credits}
+                          </div>
+                        )}
+                        {philsmsCreditsInfo.checkedAt && (
+                          <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "0.15rem" }}>
+                            Last queried at {philsmsCreditsInfo.checkedAt}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}

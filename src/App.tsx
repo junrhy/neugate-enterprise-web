@@ -303,7 +303,7 @@ function MainAppContent({
           />
         )}
         {activeTab === "sms" && (
-          <SMSConsole smsLogs={smsLogs} onDelete={handleDeleteSmsLog} onClearAll={handleClearAllSmsLogs} />
+          <SMSConsole smsLogs={smsLogs} onDelete={handleDeleteSmsLog} onClearAll={handleClearAllSmsLogs} onNavigateToSettings={() => setActiveTab("settings")} />
         )}
         {activeTab === "settings" && (
           <SettingsPage settings={settings} onSave={handleSaveSettings} db={db} branches={branches} />
