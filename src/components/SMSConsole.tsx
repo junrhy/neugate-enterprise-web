@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { checkActiveGatewayCredits, SmsCreditInfo } from "../utils/smsCredits";
+import SmsCreditsCard from "./SmsCreditsCard";
 
 interface SMSConsoleProps {
   onNavigateToSettings?: () => void;
@@ -223,113 +224,14 @@ export default function SmsConsole(props: SMSConsoleProps = {}) {
         </p>
       </div>
 
-      {/* 💳 SMS Gateway & Live Credit Status Card */}
-      <div
-        style={{
-          background: "var(--bg-card, rgba(255, 255, 255, 0.03))",
-          border: "1px solid var(--border)",
-          borderRadius: "12px",
-          padding: "1rem 1.25rem",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "1rem",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <div
-            style={{
-              width: "46px",
-              height: "46px",
-              borderRadius: "10px",
-              background: "var(--primary-dim, rgba(0, 212, 255, 0.1))",
-              border: "1px solid rgba(0, 212, 255, 0.25)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1.45rem",
-              flexShrink: 0,
-            }}
-          >
-            💳
-          </div>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <span style={{ fontSize: "0.75rem", textTransform: "uppercase", fontWeight: 700, color: "var(--text-dim)" }}>
-                Active SMS Gateway
-              </span>
-              <span className="badge badge-primary" style={{ textTransform: "uppercase", fontSize: "0.72rem", letterSpacing: "0.5px" }}>
-                {creditInfo?.gateway || localStorage.getItem("neugate_sms_gateway") || "Not Configured"}
-              </span>
-            </div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", marginTop: "0.25rem", flexWrap: "wrap" }}>
-              {loadingCredits ? (
-                <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-muted)" }}>
-                  ⏳ Checking remaining credits...
-                </span>
-              ) : creditInfo?.error ? (
-                <span style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--danger)" }}>
-                  ⚠️ {creditInfo.error}
-                </span>
-              ) : creditInfo?.credits !== undefined && creditInfo?.credits !== null ? (
-                <>
-                  <span
-                    style={{
-                      fontSize: "1.35rem",
-                      fontWeight: 800,
-                      color:
-                        typeof creditInfo.credits === "number" && creditInfo.credits <= 20
-                          ? "var(--danger)"
-                          : "var(--primary)",
-                    }}
-                  >
-                    {typeof creditInfo.credits === "number"
-                      ? `${creditInfo.credits.toLocaleString()} SMS Credits Left`
-                      : creditInfo.credits}
-                  </span>
-                  {creditInfo.accountName && (
-                    <span style={{ fontSize: "0.82rem", color: "var(--text-dim)", fontWeight: 600 }}>
-                      • {creditInfo.accountName}
-                    </span>
-                  )}
-                </>
-              ) : (
-                <span style={{ fontSize: "0.95rem", color: "var(--text-muted)" }}>
-                  Click refresh to check remaining credits
-                </span>
-              )}
-            </div>
-            {creditInfo?.checkedAt && (
-              <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginTop: "0.2rem" }}>
-                Last checked at {creditInfo.checkedAt}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
-          <button
-            type="button"
-            className="btn btn-outline"
-            onClick={fetchCredits}
-            disabled={loadingCredits}
-            style={{ fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.35rem", padding: "0.5rem 0.85rem" }}
-          >
-            {loadingCredits ? "⏳ Refreshing..." : "🔄 Refresh Balance"}
-          </button>
-          {props.onNavigateToSettings && (
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={props.onNavigateToSettings}
-              style={{ fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.35rem", padding: "0.5rem 0.85rem" }}
-            >
-              ⚙️ SMS Settings
-            </button>
-          )}
-        </div>
-      </div>
+      {/* 💳 SMS Gateway & Live Credit Status Card with Progress Bar */}
+      <SmsCreditsCard
+        creditInfo={creditInfo}
+        loading={loadingCredits}
+        onRefresh={fetchCredits}
+        onNavigateToSettings={props.onNavigateToSettings}
+        showSettingsButton={Boolean(props.onNavigateToSettings)}
+      />
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "1.5rem" }}>
         {/* Send Form */}

@@ -8,6 +8,7 @@ import { useAuth } from "../hooks/useAuth";
 
 import { BranchLocation } from "../types";
 import { checkSemaphoreCredits, checkUniSmsCredits, checkPhilSmsCredits, SmsCreditInfo } from "../utils/smsCredits";
+import SmsCreditsCard from "./SmsCreditsCard";
 
 export type ThemeColor = "ocean" | "emerald" | "rose" | "violet" | "amber";
 
@@ -1041,6 +1042,9 @@ export default function SettingsPage({ settings, onSave, db, branches }: Setting
               <h3>SMS / Notifications</h3>
               <p>Configure how SMS notifications are sent when employees tap their RFID card at the gate.</p>
             </div>
+
+            {/* 🪙 Live SMS Credits & Quota Box */}
+            <SmsCreditsCard gateway={form.smsGateway} style={{ marginBottom: "1.25rem" }} />
 
             <div className="settings-field-group">
               <div className="form-group">
