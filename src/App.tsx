@@ -130,6 +130,8 @@ function MainAppContent({
   handleAddManualLog,
   branches,
   onAddBranch,
+  onToggleBranch,
+  onDeleteBranch,
   onRefreshSchedules,
   onRefreshData,
 }: any) {
@@ -167,6 +169,7 @@ function MainAppContent({
         {activeTab === "gate" && (
           <GateConsole
             employees={employees}
+            branches={branches}
             onScan={handleScan}
             recentLogs={todayLogs}
             showSimulator={settings.showSimulator}
@@ -230,6 +233,8 @@ function MainAppContent({
             employees={employees}
             branches={branches}
             onAddBranch={onAddBranch}
+            onToggleBranch={onToggleBranch}
+            onDeleteBranch={onDeleteBranch}
             onScan={handleScan}
           />
         )}
@@ -311,7 +316,14 @@ function App() {
   const toast = useToast();
   const [db, setDb] = useState<Database | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [branches, setBranches] = useState<BranchLocation[]>(DEFAULT_BRANCH_LOCATIONS);
+  const [branches, setBranches] = useState<BranchLocation[]>(() => {
+    try {
+      const saved = localStorage.getItem("neugate_branch_locations");
+      return saved ? JSON.parse(saved) : DEFAULT_BRANCH_LOCATIONS;
+    } catch {
+      return DEFAULT_BRANCH_LOCATIONS;
+    }
+  });
   const [logs, setLogs] = useState<AttendanceLog[]>([]);
   const [schedules, setSchedules] = useState<WorkSchedule[]>([]);
   const [rates, setRates] = useState<EmployeeRate[]>([]);
@@ -1032,7 +1044,7 @@ function App() {
   const lastScanMapRef = useState<Record<string, number>>(() => ({}))[0];
 
   // ── RFID / Biometric / QR Code Scan Handler ──────────────────────────
-  const handleScan = useCallback(async (tagInput: string): Promise<{ employee: Employee | null; log: AttendanceLog }> => {
+  const handleScan = useCallback(async (tagInput: string, overridePin?: string): Promise<{ employee: Employee | null; log: AttendanceLog | null; deniedReason?: string }> => {
     const cleanTag = tagInput.trim();
     const employee = employees.find((e) =>
       (e.rfidTag && e.rfidTag === cleanTag) ||
@@ -1041,24 +1053,61 @@ function App() {
       (e.qrCode && e.qrCode === cleanTag) ||
       e.id === cleanTag
     ) ?? null;
+
+    if (!employee) {
+      return {
+        employee: null,
+        log: null,
+        deniedReason: "Unregistered RFID, QR, or Biometric Tag",
+      };
+    }
+
     const now = new Date();
     const nowMs = now.getTime();
 
+    // ── Worksite & Geofence Policy Verification ──
+    const isGeofenceEnforced = localStorage.getItem("neugate_geofence_enforce") === "true";
+    const activeBranchId = localStorage.getItem("neugate_terminal_branch_id");
+    const activeBranch = branches.find((b: BranchLocation) => b.id === activeBranchId) || (branches.length > 0 ? branches[0] : null);
+
+    if (isGeofenceEnforced && activeBranch) {
+      let policies: Record<string, string> = {};
+      try {
+        policies = JSON.parse(localStorage.getItem("neugate_employee_branch_policies") || "{}");
+      } catch {}
+
+      const allowedBranchId = policies[employee.id];
+      if (allowedBranchId && allowedBranchId !== "ANY" && allowedBranchId !== activeBranch.id) {
+        const configuredPin = localStorage.getItem("neugate_geofence_override_pin") || "9999";
+        const isOverridden = overridePin && overridePin.trim() === configuredPin.trim();
+
+        if (!isOverridden) {
+          const assignedBranch = branches.find((b: BranchLocation) => b.id === allowedBranchId);
+          const assignedName = assignedBranch ? assignedBranch.name : "Assigned Worksite";
+          return {
+            employee,
+            log: null,
+            deniedReason: `Restricted to [${assignedName}]. Terminal worksite is set to [${activeBranch.name}].`,
+          };
+        }
+      }
+    }
+
     // Prevent double tapping within the configured cooldown window
-    const targetKey = employee ? employee.id : cleanTag;
+    const targetKey = employee.id;
     const cooldownMs = (settings.scanCooldownSeconds ?? 5) * 1000;
     if (cooldownMs > 0 && lastScanMapRef[targetKey]) {
       const elapsed = nowMs - lastScanMapRef[targetKey];
       if (elapsed < cooldownMs) {
         console.warn(`[Double Tap Suppressed]: Key ${targetKey} scanned ${elapsed}ms ago (cooldown: ${cooldownMs}ms)`);
-        const previousLog = logs.find((l) => l.employeeId === (employee?.id ?? "UNKNOWN")) || {
-          employeeId: employee?.id ?? "UNKNOWN",
-          employeeName: employee?.name ?? "Unknown Tag/QR/Fingerprint",
-          departmentJobTitle: employee?.departmentJobTitle ?? "—",
+        const previousLog = logs.find((l) => l.employeeId === employee.id) || {
+          employeeId: employee.id,
+          employeeName: employee.name,
+          departmentJobTitle: employee.departmentJobTitle ?? "—",
           type: "IN",
           timestamp: now.toLocaleString("en-PH"),
           smsStatus: "Pending",
-          location: settings.deviceLocation || "Main Turnstile",
+          location: activeBranch ? activeBranch.name : (settings.deviceLocation || "Main Turnstile"),
         };
         return { employee, log: previousLog };
       }
@@ -1070,21 +1119,22 @@ function App() {
 
     let type: "IN" | "OUT" = "IN";
     const todayStr = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
-    const todayLogs = logs.filter((l) => l.employeeId === (employee?.id ?? cleanTag) && l.timestamp.includes(todayStr));
+    const todayLogs = logs.filter((l) => l.employeeId === employee.id && l.timestamp.includes(todayStr));
     if (todayLogs.length > 0 && todayLogs[0].type === "IN") {
       type = "OUT";
     }
 
-    const status = calculateAttendanceStatus(type, now, employee?.id ?? cleanTag, schedules);
+    const status = calculateAttendanceStatus(type, now, employee.id, schedules);
+    const locationName = activeBranch ? activeBranch.name : (settings.deviceLocation || "Main Turnstile");
 
     const log: AttendanceLog = {
-      employeeId: employee?.id ?? "UNKNOWN",
-      employeeName: employee?.name ?? "Unknown Tag/QR/Fingerprint",
-      departmentJobTitle: employee?.departmentJobTitle ?? "—",
+      employeeId: employee.id,
+      employeeName: employee.name,
+      departmentJobTitle: employee.departmentJobTitle ?? "—",
       type,
       timestamp,
       smsStatus: employee && employee.managerPhone ? "Sent" : "Pending",
-      location: settings.deviceLocation || "Main Turnstile",
+      location: locationName,
       status,
     };
 
@@ -1097,7 +1147,8 @@ function App() {
         );
 
         if (employee && employee.managerPhone) {
-          const smsMsg = `Dear Manager, ${employee.name} (${employee.departmentJobTitle}) has ${type === "IN" ? "entered" : "exited"} [${settings.deviceLocation || "Main Turnstile"}] of ${settings.schoolName} at ${now.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" })}.`;
+          const companyTitle = settings.companyName || settings.schoolName || "Company";
+          const smsMsg = `Dear Manager, ${employee.name} (${employee.departmentJobTitle}) has ${type === "IN" ? "entered" : "exited"} [${locationName}] of ${companyTitle} at ${now.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" })}.`;
           const smsId = `sms-${Date.now()}`;
           let smsStatus = "Pending";
 
@@ -1110,7 +1161,7 @@ function App() {
                 manager_name: employee.managerName,
                 department: employee.departmentJobTitle,
                 type,
-                location: settings.deviceLocation || "Main Turnstile",
+                location: locationName,
                 timestamp: now.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" }),
                 message: smsMsg,
                 photo: employee.photo,
@@ -1461,11 +1512,27 @@ function App() {
   };
 
   const handleAddBranch = async (branch: BranchLocation) => {
-    setBranches((prev) => [...prev, branch]);
+    setBranches((prev) => {
+      const next = [...prev, branch];
+      localStorage.setItem("neugate_branch_locations", JSON.stringify(next));
+      return next;
+    });
   };
 
   const handleToggleBranch = async (id: string, active: boolean) => {
-    setBranches((prev) => prev.map((b) => (b.id === id ? { ...b, isActive: active } : b)));
+    setBranches((prev) => {
+      const next = prev.map((b) => (b.id === id ? { ...b, isActive: active } : b));
+      localStorage.setItem("neugate_branch_locations", JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleDeleteBranch = async (id: string) => {
+    setBranches((prev) => {
+      const next = prev.filter((b) => b.id !== id);
+      localStorage.setItem("neugate_branch_locations", JSON.stringify(next));
+      return next;
+    });
   };
 
   const [showLogin, setShowLogin] = useState(false);
@@ -1536,6 +1603,7 @@ function App() {
         branches={branches}
         onAddBranch={handleAddBranch}
         onToggleBranch={handleToggleBranch}
+        onDeleteBranch={handleDeleteBranch}
         onRefreshSchedules={() => db && refreshData(db)}
         onRefreshData={() => db && refreshData(db)}
       />

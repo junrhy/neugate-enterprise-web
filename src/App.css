@@ -27,6 +27,8 @@
   --bg-input-hover: #1e2d4a;
   --bg-input-focus: #1e2d4a;
   --border: rgba(255, 255, 255, 0.07);
+  --border-input: rgba(255, 255, 255, 0.14);
+  --border-input-hover: rgba(255, 255, 255, 0.28);
   --border-focus: rgba(0, 212, 255, 0.4);
   --text: #e8eaf6;
   --text-muted: #6b7bb8;
@@ -39,10 +41,12 @@ body.light-mode {
   --bg: #f3f4f6;
   --bg-surface: #ffffff;
   --bg-card: #ffffff;
-  --bg-input: #f9fafb;
-  --bg-input-hover: #f3f4f6;
+  --bg-input: #ffffff;
+  --bg-input-hover: #f8fafc;
   --bg-input-focus: #ffffff;
-  --border: #e5e7eb;
+  --border: #e2e8f0;
+  --border-input: #94a3b8;
+  --border-input-hover: #475569;
   --border-focus: rgba(0, 212, 255, 0.6);
   --text: #1f2937;
   --text-muted: #4b5563;
@@ -376,6 +380,7 @@ body.kiosk-mode .gate-display {
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
   padding: 0.5rem 1rem;
   border-radius: var(--radius-sm);
@@ -384,6 +389,8 @@ body.kiosk-mode .gate-display {
   font-size: 0.82rem;
   font-weight: 600;
   font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.18s;
 }
 
@@ -418,14 +425,16 @@ body.kiosk-mode .gate-display {
 }
 
 .btn-outline {
-  background: transparent;
+  background: var(--bg-surface);
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border-input);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .btn-outline:hover {
   border-color: var(--primary);
   color: var(--primary);
+  background: var(--bg-input-hover);
 }
 
 /* ─── Gate Console ───────────────────────────────────────── */
@@ -942,48 +951,89 @@ body.kiosk-mode .gate-display {
 }
 
 .form-input,
-.form-select {
+.form-select,
+select.form-input,
+textarea.form-input,
+input.form-input {
   width: 100%;
   padding: 0.65rem 0.9rem;
-  background: var(--bg-input);
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-input);
+  border: 1.5px solid var(--border-input);
   border-radius: var(--radius-sm);
   color: var(--text);
   font-family: inherit;
   font-size: 0.875rem;
   line-height: 1.4;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
   appearance: none;
   -webkit-appearance: none;
 }
 
-.form-input::placeholder {
+body.light-mode .form-input,
+body.light-mode .form-select,
+body.light-mode select.form-input,
+body.light-mode textarea.form-input,
+body.light-mode input.form-input {
+  background-color: #ffffff;
+  border-color: #94a3b8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .form-input:hover,
+body.light-mode .form-select:hover,
+body.light-mode select.form-input:hover,
+body.light-mode textarea.form-input:hover,
+body.light-mode input.form-input:hover {
+  border-color: #475569;
+  background-color: #f8fafc;
+}
+
+.form-input::placeholder,
+.form-select::placeholder {
   color: var(--text-dim);
 }
 
 .form-input:hover,
-.form-select:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: var(--bg-input-hover);
+.form-select:hover,
+select.form-input:hover,
+textarea.form-input:hover,
+input.form-input:hover {
+  border-color: var(--border-input-hover);
+  background-color: var(--bg-input-hover);
 }
 
 .form-input:focus,
-.form-select:focus {
+.form-select:focus,
+select.form-input:focus,
+textarea.form-input:focus,
+input.form-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
-  background: var(--bg-input-focus);
+  box-shadow: 0 0 0 3px var(--primary-dim);
+  background-color: var(--bg-input-focus);
 }
 
-/* Custom dropdown arrow */
+/* Custom dropdown arrow for all selects */
+select.form-input,
+select.form-select,
 .form-select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7bb8' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  padding-right: 2.2rem;
+  background-repeat: no-repeat !important;
+  background-position: right 0.85rem center !important;
+  background-size: 12px 8px !important;
+  padding-right: 2.2rem !important;
   cursor: pointer;
 }
 
+body.light-mode select.form-input,
+body.light-mode select.form-select,
+body.light-mode .form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23334155' stroke-width='1.75' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+select.form-input option,
+select.form-select option,
 .form-select option {
   background: var(--bg-surface);
   color: var(--text);
@@ -1007,22 +1057,32 @@ body.kiosk-mode .gate-display {
 
 /* ─── Filter / Toolbar Inputs ────────────────────────────── */
 input[type="date"].form-input,
-input[type="date"] {
+input[type="date"],
+input[type="time"].form-input,
+input[type="time"] {
   color-scheme: dark;
+}
+
+body.light-mode input[type="date"].form-input,
+body.light-mode input[type="date"],
+body.light-mode input[type="time"].form-input,
+body.light-mode input[type="time"] {
+  color-scheme: light;
 }
 
 /* Search input inner icon spacing */
 .search-input {
   width: 100%;
   padding: 0.65rem 0.9rem 0.65rem 2.3rem;
-  background: var(--bg-input);
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-input);
+  border: 1.5px solid var(--border-input);
   border-radius: var(--radius-sm);
   color: var(--text);
   font-family: inherit;
   font-size: 0.875rem;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
 .search-input::placeholder {
@@ -1030,12 +1090,14 @@ input[type="date"] {
 }
 
 .search-input:hover {
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: var(--border-input-hover);
+  background-color: var(--bg-input-hover);
 }
 
 .search-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
+  box-shadow: 0 0 0 3px var(--primary-dim);
+  background-color: var(--bg-input-focus);
 }
 
 /* ─── Validation Error States ────────────────────────────── */

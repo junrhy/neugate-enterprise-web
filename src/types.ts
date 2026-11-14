@@ -26,6 +26,7 @@ export interface BranchLocation {
   id: string;
   name: string;
   address: string;
+  city?: string;
   latitude: number;
   longitude: number;
   radiusMeters: number; // e.g. 150 meters radius allowed

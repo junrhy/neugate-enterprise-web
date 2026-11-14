@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 export interface WebhookEventPayload {
   event: string;
   timestamp: string;
+  company_name?: string;
   school_name?: string;
   license_key?: string;
   machine_fingerprint?: string;
@@ -25,13 +26,14 @@ export async function sendWebhookEvent(event: string, data: Record<string, any> 
     }
 
     const licenseKey = localStorage.getItem("neugate_license_key") || undefined;
-    const schoolName = localStorage.getItem("neugate_school_name") || "NeuGate Academy";
+    const companyName = localStorage.getItem("neugate_school_name") || "Acme Corporation";
     const fingerprint = await invoke<string>("get_machine_fingerprint").catch(() => undefined);
 
     const payload: WebhookEventPayload = {
       event,
       timestamp: new Date().toISOString(),
-      school_name: schoolName,
+      company_name: companyName,
+      school_name: companyName,
       license_key: licenseKey,
       machine_fingerprint: fingerprint,
       data,

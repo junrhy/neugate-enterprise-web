@@ -10,6 +10,7 @@ export type ThemeColor = "ocean" | "emerald" | "rose" | "violet" | "amber";
 
 export interface AppSettings {
   schoolName: string;
+  companyName?: string;
   schoolTagline: string;
   themeColor: ThemeColor;
   showSimulator: boolean;
@@ -1301,7 +1302,7 @@ ${form.broadcastDriver ? `  "driver":       "${form.broadcastDriver}",        //
                   </div>
                   <div className="form-group">
                     <label className="form-label">Sender Name (Optional)</label>
-                    <input className="form-input" type="text" placeholder="e.g. SchoolName"
+                    <input className="form-input" type="text" placeholder="e.g. CompanyName"
                       value={form.philsmsSenderName}
                       onChange={(e) => { setForm((f) => ({ ...f, philsmsSenderName: e.target.value })); setTestResult(null); }}
                       spellCheck={false} />
@@ -1868,7 +1869,7 @@ function StorageTabSection() {
           📁 Centralized File Storage Manager
         </h4>
         <p style={{ color: "var(--text-dim)", fontSize: "0.8rem", margin: "0 0 1rem 0" }}>
-          Configure where student photos, exported attendance logs, and attachments are stored and shared.
+          Configure where employee photos, exported attendance logs, and attachments are stored and shared.
         </p>
 
         <div className="form-group" style={{ marginBottom: "1rem" }}>
@@ -1917,7 +1918,7 @@ function StorageTabSection() {
               </div>
               <div className="form-group">
                 <label className="form-label">Bucket Name</label>
-                <input type="text" value={s3Bucket} onChange={(e) => setS3Bucket(e.target.value)} placeholder="e.g. school-rfid-assets" className="form-input" />
+                <input type="text" value={s3Bucket} onChange={(e) => setS3Bucket(e.target.value)} placeholder="e.g. company-rfid-assets" className="form-input" />
               </div>
             </div>
 
@@ -2245,7 +2246,8 @@ function DevSettingsTabSection() {
         body: JSON.stringify({
           event: "test_connection",
           timestamp: new Date().toISOString(),
-          school_name: localStorage.getItem("neugate_school_name") || "NeuGate Academy",
+          company_name: localStorage.getItem("neugate_school_name") || "Acme Corporation",
+          school_name: localStorage.getItem("neugate_school_name") || "Acme Corporation",
           license_key: localStorage.getItem("neugate_license_key") || undefined,
           machine_fingerprint: fp,
         }),
@@ -2277,7 +2279,7 @@ function DevSettingsTabSection() {
             <div>
               <div style={{ fontWeight: 700, fontSize: "0.9rem" }}>⚡ Automation &amp; Webhook Integration</div>
               <div style={{ fontSize: "0.78rem", color: "var(--text-dim)", marginTop: "0.2rem" }}>
-                Trigger automated workflows in n8n, Zapier, Make, or custom servers on RFID tap events &amp; student updates.
+                Trigger automated workflows in n8n, Zapier, Make, or custom servers on RFID tap events &amp; employee updates.
               </div>
             </div>
             <label className="toggle-switch">
@@ -2303,7 +2305,7 @@ function DevSettingsTabSection() {
                   style={{ fontFamily: "monospace", fontSize: "0.85rem" }}
                 />
                 <span style={{ fontSize: "0.72rem", color: "var(--text-dim)", marginTop: "0.3rem", display: "block" }}>
-                  Receives HTTP POST JSON payloads for RFID gate taps (IN/OUT), student registration, and system events.
+                  Receives HTTP POST JSON payloads for RFID gate taps (IN/OUT), employee registration, and system events.
                 </span>
               </div>
 

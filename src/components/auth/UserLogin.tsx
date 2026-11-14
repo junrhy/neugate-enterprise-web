@@ -44,10 +44,10 @@ export default function UserLogin({ db, onClose }: UserLoginProps) {
         <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
           <div style={{ fontSize: "2.75rem", marginBottom: "0.5rem" }}>🔐</div>
           <h2 style={{ margin: "0 0 0.4rem 0", fontSize: "1.35rem", color: "var(--text-main)" }}>
-            School Gate Login
+            Login
           </h2>
           <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-dim)" }}>
-            Sign in to access school administration &amp; gate controls.
+            Sign in to access company administration &amp; gate controls.
           </p>
         </div>
 

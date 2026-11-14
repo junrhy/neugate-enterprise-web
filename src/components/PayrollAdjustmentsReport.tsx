@@ -153,21 +153,21 @@ export default function PayrollAdjustmentsReport({
   // Summary totals
   const totals = rows.reduce(
     (acc, r) => ({
-      regularSalary: acc.regularSalary + r.regularSalary,
-      overtimePay: acc.overtimePay + r.overtimePay,
-      holiday30Pay: acc.holiday30Pay + r.holiday30Pay,
-      totalSalary: acc.totalSalary + r.totalSalary,
-      undertimeDed: acc.undertimeDed + r.undertimeDed,
-      lateDed: acc.lateDed + r.lateDed,
-      totalNet: acc.totalNet + r.totalNet,
-      sssEe: acc.sssEe + r.sssEe,
-      caDeductions: acc.caDeductions + r.caDeductions,
-      otherDeductions: acc.otherDeductions + r.otherDeductions,
-      sssCashReturn: acc.sssCashReturn + r.sssCashReturn,
-      totalDeduction: acc.totalDeduction + r.totalDeduction,
-      totalNetSalary: acc.totalNetSalary + r.totalNetSalary,
-      adjustmentFromSalary: acc.adjustmentFromSalary + r.adjustmentFromSalary,
-      additional: acc.additional + r.additional,
+      regularSalary: acc.regularSalary + (Number(r.regularSalary) || 0),
+      overtimePay: acc.overtimePay + (Number(r.overtimePay) || 0),
+      holiday30Pay: acc.holiday30Pay + (Number(r.holiday30Pay) || 0),
+      totalSalary: acc.totalSalary + (Number(r.totalSalary) || 0),
+      undertimeDed: acc.undertimeDed + (Number(r.undertimeDed) || 0),
+      lateDed: acc.lateDed + (Number(r.lateDed) || 0),
+      totalNet: acc.totalNet + (Number(r.totalNet) || 0),
+      sssEe: acc.sssEe + (Number(r.sssEe) || 0),
+      caDeductions: acc.caDeductions + (Number(r.caDeductions) || 0),
+      otherDeductions: acc.otherDeductions + (Number(r.otherDeductions) || 0),
+      sssCashReturn: acc.sssCashReturn + (Number(r.sssCashReturn) || 0),
+      totalDeduction: acc.totalDeduction + (Number(r.totalDeduction) || 0),
+      totalNetSalary: acc.totalNetSalary + (Number(r.totalNetSalary) || 0),
+      adjustmentFromSalary: acc.adjustmentFromSalary + (Number(r.adjustmentFromSalary) || 0),
+      additional: acc.additional + (Number(r.additional) || 0),
     }),
     {
       regularSalary: 0,
@@ -225,27 +225,27 @@ export default function PayrollAdjustmentsReport({
       r.no,
       `"${r.name.replace(/"/g, '""')}"`,
       `"${r.position.replace(/"/g, '""')}"`,
-      r.perDay.toFixed(2),
-      r.perHour.toFixed(2),
+      Number(r.perDay || 0).toFixed(2),
+      Number(r.perHour || 0).toFixed(2),
       r.noDays,
       r.overtimeHours || "",
       r.holiday100Hours || "",
       r.holiday30Hours || "",
-      r.regularSalary.toFixed(2),
-      r.overtimePay ? r.overtimePay.toFixed(2) : "-",
-      r.holiday30Pay ? r.holiday30Pay.toFixed(2) : "-",
-      r.totalSalary.toFixed(2),
-      r.undertimeDed ? r.undertimeDed.toFixed(2) : "-",
-      r.lateDed ? r.lateDed.toFixed(2) : "-",
-      r.totalNet.toFixed(2),
-      r.sssEe ? r.sssEe.toFixed(2) : "-",
-      r.caDeductions ? r.caDeductions.toFixed(2) : "-",
-      r.otherDeductions ? r.otherDeductions.toFixed(2) : "-",
-      r.sssCashReturn ? r.sssCashReturn.toFixed(2) : "-",
-      r.totalDeduction.toFixed(2),
-      r.totalNetSalary.toFixed(2),
-      r.adjustmentFromSalary.toFixed(2),
-      r.additional.toFixed(2),
+      Number(r.regularSalary || 0).toFixed(2),
+      r.overtimePay ? Number(r.overtimePay).toFixed(2) : "-",
+      r.holiday30Pay ? Number(r.holiday30Pay).toFixed(2) : "-",
+      Number(r.totalSalary || 0).toFixed(2),
+      r.undertimeDed ? Number(r.undertimeDed).toFixed(2) : "-",
+      r.lateDed ? Number(r.lateDed).toFixed(2) : "-",
+      r.totalNet ? Number(r.totalNet).toFixed(2) : "0.00",
+      Number(r.sssEe) ? Number(r.sssEe).toFixed(2) : "-",
+      Number(r.caDeductions) ? Number(r.caDeductions).toFixed(2) : "-",
+      Number(r.otherDeductions) ? Number(r.otherDeductions).toFixed(2) : "-",
+      Number(r.sssCashReturn) ? Number(r.sssCashReturn).toFixed(2) : "-",
+      Number(r.totalDeduction || 0).toFixed(2),
+      Number(r.totalNetSalary || 0).toFixed(2),
+      Number(r.adjustmentFromSalary || 0).toFixed(2),
+      Number(r.additional || 0).toFixed(2),
     ].join(","));
 
     // Add Summary Row
@@ -438,8 +438,8 @@ export default function PayrollAdjustmentsReport({
                   <td style={{ padding: "0.4rem 0.5rem", fontWeight: 700, whiteSpace: "nowrap" }}>{r.name}</td>
                   <td style={{ padding: "0.4rem 0.5rem", color: "var(--text-sub)", borderRight: "1px solid var(--border)", whiteSpace: "nowrap" }}>{r.position}</td>
 
-                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right" }}>₱{r.perDay.toLocaleString("en-PH", { minimumFractionDigits: 2 })}</td>
-                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--text-sub)" }}>₱{r.perHour.toFixed(2)}</td>
+                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right" }}>₱{Number(r.perDay || 0).toLocaleString("en-PH", { minimumFractionDigits: 2 })}</td>
+                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--text-sub)" }}>₱{Number(r.perHour || 0).toFixed(2)}</td>
                   <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", fontWeight: 700, borderRight: "1px solid var(--border)" }}>{r.noDays}</td>
 
                   <td style={{ padding: "0.4rem 0.5rem", textAlign: "right" }}>{r.overtimeHours || "-"}</td>
@@ -450,12 +450,12 @@ export default function PayrollAdjustmentsReport({
                   <td style={{ padding: "0.4rem 0.5rem", textAlign: "right" }}>{r.holiday30Pay ? `₱${r.holiday30Pay.toLocaleString("en-PH", { minimumFractionDigits: 2 })}` : "-"}</td>
                   <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", fontWeight: 700, borderRight: "1px solid var(--border)" }}>₱{r.totalSalary.toLocaleString("en-PH", { minimumFractionDigits: 2 })}</td>
 
-                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--danger)", borderRight: "1px solid var(--border)" }}>{r.undertimeDed ? `₱${r.undertimeDed.toFixed(2)}` : "-"}</td>
+                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--danger)", borderRight: "1px solid var(--border)" }}>{Number(r.undertimeDed) ? `₱${Number(r.undertimeDed).toFixed(2)}` : "-"}</td>
 
-                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--text-sub)" }}>{r.sssEe ? `₱${r.sssEe.toFixed(2)}` : "-"}</td>
-                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--text-sub)" }}>{r.caDeductions ? `₱${r.caDeductions.toFixed(2)}` : "-"}</td>
-                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--text-sub)" }}>{r.otherDeductions ? `₱${r.otherDeductions.toFixed(2)}` : "-"}</td>
-                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--text-sub)" }}>{r.sssCashReturn ? `₱${r.sssCashReturn.toFixed(2)}` : "-"}</td>
+                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--text-sub)" }}>{Number(r.sssEe) ? `₱${Number(r.sssEe).toFixed(2)}` : "-"}</td>
+                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--text-sub)" }}>{Number(r.caDeductions) ? `₱${Number(r.caDeductions).toFixed(2)}` : "-"}</td>
+                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--text-sub)" }}>{Number(r.otherDeductions) ? `₱${Number(r.otherDeductions).toFixed(2)}` : "-"}</td>
+                  <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", color: "var(--text-sub)" }}>{Number(r.sssCashReturn) ? `₱${Number(r.sssCashReturn).toFixed(2)}` : "-"}</td>
                   <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", fontWeight: 700, color: "var(--danger)", borderRight: "1px solid var(--border)" }}>₱{r.totalDeduction.toLocaleString("en-PH", { minimumFractionDigits: 2 })}</td>
 
                   {/* Total Net Salary */}

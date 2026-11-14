@@ -97,9 +97,9 @@ export default function UserManagement({ db }: UserManagementProps) {
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <h3 style={{ margin: "0 0 0.25rem 0", color: "var(--text-main)" }}>👤 School Staff User Accounts</h3>
+          <h3 style={{ margin: "0 0 0.25rem 0", color: "var(--text-main)" }}>👤 Company Staff User Accounts</h3>
           <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-dim)" }}>
-            Register gate guards, registrars, and admin accounts.
+            Register gate guards, HR staff, and admin accounts.
           </p>
         </div>
         {!isFormOpen && (
