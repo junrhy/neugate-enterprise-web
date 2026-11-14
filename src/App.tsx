@@ -45,8 +45,12 @@ const THEME_COLORS: Record<ThemeColor, string> = {
 };
 
 function loadSettings(): AppSettings {
+  const savedCompany = (localStorage.getItem("neugate_company_name") || localStorage.getItem("neugate_school_name") || "").trim();
+  const company = (savedCompany && savedCompany.toLowerCase() !== "acme corporation") ? savedCompany : "";
+
   return {
-    schoolName:    localStorage.getItem("neugate_school_name")    || "Acme Corporation",
+    schoolName:    company || savedCompany || "",
+    companyName:   company || savedCompany || "",
     schoolTagline: localStorage.getItem("neugate_school_tagline") || "Employee Access & Timekeeping System",
     themeColor:    (localStorage.getItem("neugate_theme_color") as ThemeColor) || "ocean",
     showSimulator: localStorage.getItem("neugate_show_simulator") !== "false",
@@ -379,6 +383,17 @@ function App() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isKioskMode, toggleKioskMode]);
+
+  // Dynamically update window title & document title: replace title with company name if exist
+  useEffect(() => {
+    const rawCompany = (settings.companyName || settings.schoolName || localStorage.getItem("neugate_company_name") || localStorage.getItem("neugate_school_name") || "").trim();
+    const company = (rawCompany && rawCompany.toLowerCase() !== "acme corporation") ? rawCompany : "";
+    const title = company || "neuHR";
+    document.title = title;
+    try {
+      getCurrentWindow().setTitle(title).catch(() => {});
+    } catch (_) {}
+  }, [settings.schoolName, settings.companyName]);
 
   useEffect(() => {
     async function verifyLicense() {

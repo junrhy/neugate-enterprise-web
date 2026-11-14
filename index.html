@@ -3,7 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <title>neuHR — Employee Access, Timekeeping & Payroll System</title>
+    <title>neuHR</title>
+    <script>
+      (function() {
+        try {
+          var c = (localStorage.getItem("neugate_company_name") || localStorage.getItem("neugate_school_name") || "").trim();
+          if (c && c.toLowerCase() !== "acme corporation") {
+            document.title = c;
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
   <body>

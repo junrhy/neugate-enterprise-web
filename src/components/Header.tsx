@@ -40,7 +40,7 @@ export default function Header({
           )}
         </div>
         <div>
-          <div className="brand-name">{schoolName}</div>
+          <div className="brand-name">{schoolName || "neuHR"}</div>
           <div className="brand-tag">{schoolTagline}</div>
         </div>
       </div>
